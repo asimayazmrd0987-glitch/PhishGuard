@@ -1,0 +1,40 @@
+PhishGuard benchmarks (synthetic data, single run, times vary by machine)
+
+=== A. Domain lookup: linear vs binary search vs hash table (1000 queries, half hits / half misses) ===
+domains  method             total ms    avg compares       est. KB
+100      linear                0.191            75.0           3.1
+         binary (sorted)       0.031             5.8           3.1
+         hash table            0.033             1.0           6.0
+          (hash: buckets=163 load=0.61 longest chain=4 collisions=29)  [hits found=1500]
+1000     linear                0.950           750.0          45.8
+         binary (sorted)       0.074             9.0          45.8
+         hash table            0.038             1.0          72.1
+          (hash: buckets=1361 load=0.73 longest chain=5 collisions=277)  [hits found=1500]
+10000    linear                7.852          7481.0         484.8
+         binary (sorted)       0.153            12.7         484.8
+         hash table            0.076             0.8         812.3
+          (hash: buckets=21911 load=0.46 longest chain=5 collisions=1979)  [hits found=1500]
+100000   linear              147.162         74891.0        4964.5
+         binary (sorted)       0.516            15.8        4964.5
+         hash table            0.578             0.9        7897.6
+          (hash: buckets=175447 load=0.57 longest chain=6 collisions=23763)  [hits found=1500]
+
+=== B. Keyword lookup: plain array vs Trie (5,000 keywords, 20,000 lookups) ===
+array : 170.16 ms, avg 3750.00 word comparisons/lookup (hits=10000)
+trie  : 5.79 ms, at most one step per character (<= 11 here), 24829 nodes (hits=10000)
+
+=== C. Substring search on 200,000-character text (character/hash comparisons) ===
+case                              algorithm       comparisons          ms   matches
+random text, pattern length 8     naive                267147       1.234         5
+                                  KMP                  250212       1.385         5
+                                  Rabin-Karp           200033       1.923         5
+worst case: aaaa... vs a^400+b    naive              80039600      77.880         0
+                                  KMP                  399600       0.671         0
+                                  Rabin-Karp           199600       1.450         0
+
+=== D. Ranking the 10 riskiest of 100,000 scans: repeated linear scan vs heap vs full sort ===
+linear scan x10                1.212 ms       999955 comparisons
+max-heap (heapify+10 pops)     1.088 ms       187960 comparisons
+full merge sort                8.463 ms      1532427 comparisons
+
+Memory figures are sizeof-based estimates, not measured resident memory.

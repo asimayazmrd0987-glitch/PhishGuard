@@ -1,0 +1,10 @@
+build/
+*.o
+*.exe
+.vscode/
+
+# runtime files written by the program
+phishguard_history.txt
+tmp_*
+build_*/
+*.log

@@ -1,0 +1,178 @@
+====================================================
+                     PHISHGUARD
+             CYBERSECURITY FOR EVERYONE
+====================================================
+
+----------------------------------------------------
+1. Normal URL
+Input     : https://www.google.com/search?q=cats
+Algorithms: Hash table (trusted-domain lookup), URL parser
+Note      : Trusted website: wording heuristics are skipped.
+Risk Score: 0 / 100   Level: LOW   (expected LOW: OK)
+Recommendation: Probably safe based on the checks we ran, but stay careful. If you did not expect this, confirm it through an official website or app.
+
+----------------------------------------------------
+2. Suspicious URL
+Input     : http://secure-account-verify.example.top/login/update-password
+Algorithms: Trie (keywords), hash set (TLD list), URL parser
+Note      : Several scam words plus an unusual ending.
+  [+10] suspicious_tld
+  [+10] keyword:password
+  [+8] keyword:verify
+  [+7] keyword:login
+  [+5] long_host
+Risk Score: 40 / 100   Level: MEDIUM   (expected MEDIUM-HIGH: OK)
+Recommendation: Some suspicious signs were found. Do not enter passwords or payment details until you have checked through the official website or app.
+
+----------------------------------------------------
+3. Look-alike domain
+Input     : https://paypa1.com/signin
+Algorithms: Levenshtein DP, look-alike folding, trusted-domain hash table
+Note      : paypa1 vs paypal: edit distance 1.
+  [+30] lookalike_domain
+  [+7] keyword:signin
+  [+5] digits_in_domain
+Risk Score: 42 / 100   Level: HIGH   (expected MEDIUM-HIGH: OK)
+Recommendation: Several suspicious signs were found. Do not click the link or share personal information. Contact the company using the phone number on its official website.
+
+----------------------------------------------------
+4. Typosquatting
+Input     : https://micr0soft.com/support
+Algorithms: Levenshtein DP, look-alike folding
+Note      : 0 used instead of o.
+  [+30] lookalike_domain
+  [+5] digits_in_domain
+Risk Score: 35 / 100   Level: MEDIUM   (expected MEDIUM-HIGH: OK)
+Recommendation: Some suspicious signs were found. Do not enter passwords or payment details until you have checked through the official website or app.
+
+----------------------------------------------------
+5. Brand hidden in address
+Input     : https://paypal.com.account-check.example.xyz/login
+Algorithms: Rabin-Karp (domain inside host), Trie, hash set
+Note      : The trusted name is only a subdomain of another site.
+  [+25] brand_embedded
+  [+10] suspicious_tld
+  [+10] many_subdomains
+  [+7] keyword:login
+  [+5] long_host
+  [+5] keyword:account
+Risk Score: 62 / 100   Level: HIGH   (expected HIGH-CRITICAL: OK)
+Recommendation: Several suspicious signs were found. Do not click the link or share personal information. Contact the company using the phone number on its official website.
+
+----------------------------------------------------
+6. IP-address link
+Input     : http://203.0.113.45/login/verify
+Algorithms: URL parser (IPv4), Trie
+Note      : Documentation-range IP (203.0.113.0/24).
+  [+20] ip_host
+  [+8] keyword:verify
+  [+7] keyword:login
+Risk Score: 35 / 100   Level: MEDIUM   (expected MEDIUM-HIGH: OK)
+Recommendation: Some suspicious signs were found. Do not enter passwords or payment details until you have checked through the official website or app.
+
+----------------------------------------------------
+7. Prize scam message
+Input     : CONGRATULATIONS!!! You are the WINNER of a free reward. Claim your prize now: http://free-prize-claim.test/win
+Algorithms: KMP (phrases), Trie, hash table (threat DB), heap, graph
+Note      : Link is in the synthetic threat list.
+  [+50] known_threat
+  [+10] phrase_prize
+  [+8] keyword:winner
+  [+8] keyword:prize
+  [+6] keyword:reward
+  [+3] keyword:claim
+  [+5] excessive_punct
+Risk Score: 90 / 100   Level: CRITICAL   (expected CRITICAL: OK)
+Recommendation: DO NOT ENTER YOUR PASSWORD.
+DO NOT PROVIDE OTP OR PAYMENT INFORMATION.
+VERIFY THE SENDER THROUGH AN OFFICIAL SOURCE.
+
+----------------------------------------------------
+8. Bank phishing message
+Input     : Dear customer, your bank account has been suspended. Verify your account immediately at http://bank-verify-now.test to avoid permanent closure.
+Algorithms: KMP, Trie, hash table, risk engine
+Note      : Credential + urgency + known threat.
+  [+50] known_threat
+  [+15] phrase_credential
+  [+10] phrase_urgency
+  [+8] keyword:suspended
+  [+8] keyword:verify
+  [+6] keyword:bank
+  [+3] keyword:account
+Risk Score: 100 / 100   Level: CRITICAL   (expected CRITICAL: OK)
+Recommendation: DO NOT ENTER YOUR PASSWORD.
+DO NOT PROVIDE OTP OR PAYMENT INFORMATION.
+VERIFY THE SENDER THROUGH AN OFFICIAL SOURCE.
+
+----------------------------------------------------
+9. Delivery scam
+Input     : Your parcel could not be delivered. Pay a small delivery fee at http://parcel-fee-pay.test/pay to reschedule delivery.
+Algorithms: KMP, hash table, risk engine
+Note      : Delivery + fee request + known threat.
+  [+50] known_threat
+  [+15] phrase_financial
+  [+10] phrase_delivery
+Risk Score: 75 / 100   Level: CRITICAL   (expected HIGH-CRITICAL: OK)
+Recommendation: DO NOT ENTER YOUR PASSWORD.
+DO NOT PROVIDE OTP OR PAYMENT INFORMATION.
+VERIFY THE SENDER THROUGH AN OFFICIAL SOURCE.
+
+----------------------------------------------------
+10. Account suspension scam
+Input     : Your account will be suspended within 24 hours. Confirm your identity at http://192.0.2.15/verify now.
+Algorithms: KMP, Trie, URL parser (IPv4)
+Note      : Urgency + credential request + IP link.
+  [+20] ip_host
+  [+15] phrase_credential
+  [+10] phrase_urgency
+  [+8] keyword:suspended
+  [+8] keyword:verify
+  [+6] keyword:confirm
+  [+3] keyword:account
+Risk Score: 70 / 100   Level: HIGH   (expected HIGH-CRITICAL: OK)
+Recommendation: Several suspicious signs were found. Do not click the link or share personal information. Contact the company using the phone number on its official website.
+
+----------------------------------------------------
+11. OTP scam
+Input     : Your bank needs verification. Please share your OTP and PIN with our agent right away.
+Algorithms: KMP, Trie, risk engine (keyword cap)
+Note      : No link at all: scams can be text only.
+  [+15] phrase_credential
+  [+10] phrase_urgency
+  [+10] keyword:otp
+  [+10] keyword:pin
+  [+5] keyword:verification
+Risk Score: 50 / 100   Level: HIGH   (expected MEDIUM-HIGH: OK)
+Recommendation: Several suspicious signs were found. Do not click the link or share personal information. Contact the company using the phone number on its official website.
+
+----------------------------------------------------
+12. Legitimate urgent message (false-positive risk)
+Input     : URGENT: Your bank card payment of $50 failed. Please update your payment details in the official app.
+Algorithms: Trie, risk engine
+Note      : A real alert can look suspicious: documented false positive.
+  [+8] keyword:urgent
+  [+7] keyword:payment
+  [+6] keyword:bank
+  [+4] keyword:update
+Risk Score: 25 / 100   Level: MEDIUM   (expected MEDIUM-HIGH: OK)
+Recommendation: Some suspicious signs were found. Do not enter passwords or payment details until you have checked through the official website or app.
+
+----------------------------------------------------
+13. Malformed URL
+Input     : http://bad..domain.com/page
+Algorithms: URL parser validation
+Note      : Parser rejects an empty label.
+  [+10] malformed_url
+Risk Score: 10 / 100   Level: LOW   (expected LOW-MEDIUM: OK)
+Recommendation: Probably safe based on the checks we ran, but stay careful. If you did not expect this, confirm it through an official website or app.
+
+----------------------------------------------------
+14. Polite scam (false-negative risk)
+Input     : Hi Mum, I dropped my phone in water. This is my new number, can you text me here?
+Algorithms: Trie, KMP (nothing matches)
+Note      : No keywords or links: heuristics miss it (documented false negative).
+Risk Score: 0 / 100   Level: LOW   (expected LOW: OK)
+Recommendation: Probably safe based on the checks we ran, but stay careful. If you did not expect this, confirm it through an official website or app.
+
+----------------------------------------------------
+14 of 14 demo scenarios landed in their expected level range.

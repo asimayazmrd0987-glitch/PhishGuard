@@ -1,0 +1,12 @@
+# FILE: data/url_shorteners.txt
+# WHAT  Link-shortening services. A shortened link hides its real destination, so it earns a small
+#       score. One domain per line.
+#
+bit.ly
+tinyurl.com
+t.co
+goo.gl
+is.gd
+cutt.ly
+ow.ly
+rb.gy

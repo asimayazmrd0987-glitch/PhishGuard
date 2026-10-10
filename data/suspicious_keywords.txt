@@ -1,0 +1,40 @@
+# FILE: data/suspicious_keywords.txt
+# WHAT  Single words that often appear in scams. They are loaded into a Trie and matched as WHOLE words.
+# FORMAT  word|category|weight       weight = points added when the word is found
+# NOTE  Many honest messages contain these words too, so the total from keywords is capped
+#       (cap.keyword in risk_config.txt). Weights are judgement, not measured statistics.
+#
+# word|category|weight   (heuristic weights; total keyword points are capped by cap.keyword)
+urgent|urgency|8
+verify|credential|8
+verification|credential|8
+password|credential|10
+credentials|credential|10
+account|credential|5
+blocked|urgency|8
+suspended|urgency|8
+winner|prize|8
+reward|prize|6
+prize|prize|8
+lottery|prize|8
+otp|credential|10
+pin|credential|10
+cvv|credential|10
+login|credential|7
+signin|credential|7
+bank|financial|6
+payment|financial|7
+billing|financial|5
+refund|financial|7
+invoice|financial|5
+wallet|financial|6
+security|credential|5
+secure|credential|3
+confirm|credential|6
+update|credential|4
+unlock|urgency|6
+claim|prize|6
+gift|prize|5
+free|prize|4
+alert|urgency|4
+limited|urgency|3

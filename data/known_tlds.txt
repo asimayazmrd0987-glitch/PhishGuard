@@ -1,0 +1,55 @@
+# FILE: data/known_tlds.txt
+# WHAT  Endings used ONLY to decide whether a bare word in a message looks like a link
+#       ("claim-prize.xyz" is, "Hi.There" is not). It does not affect the score.
+#
+# Used only to decide whether a bare word like "example.xyz" in a message is link-like.
+com
+net
+org
+edu
+gov
+info
+biz
+xyz
+top
+click
+link
+online
+site
+shop
+club
+work
+live
+icu
+pk
+in
+uk
+us
+io
+co
+me
+ly
+gl
+to
+cc
+tk
+ml
+ga
+cf
+gq
+ru
+cn
+app
+dev
+test
+invalid
+zip
+support
+buzz
+cfd
+de
+fr
+jp
+br
+au
+ca

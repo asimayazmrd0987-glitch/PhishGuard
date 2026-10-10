@@ -1,0 +1,47 @@
+# =============================================================================
+# RELEASE: builds downloadable programs when you publish a version tag.
+#
+# HOW TO USE
+#   git tag v1.0.0
+#   git push origin v1.0.0
+# GitHub then builds PhishGuard on Linux, Windows and macOS, zips the program together
+# with its data/ folder, and attaches the files to a GitHub Release page.
+#
+# WHY
+#   This is the "deployment" for a command-line program: people download a zip,
+#   unzip it and run it. No compiler needed.
+# =============================================================================
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write   # needed to attach files to the release
+
+jobs:
+  package:
+    name: package ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        run: |
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+          cmake --build build --config Release
+      - name: Test
+        run: ctest --test-dir build -C Release --output-on-failure
+      - name: Package
+        shell: bash
+        run: |
+          mkdir -p dist/phishguard
+          if [ -f build/Release/phishguard.exe ]; then cp build/Release/phishguard.exe dist/phishguard/; else cp build/phishguard dist/phishguard/; fi
+          cp -r data README.md LICENSE dist/phishguard/
+          cd dist && cmake -E tar cf "../phishguard-${{ runner.os }}.zip" --format=zip phishguard
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: phishguard-${{ runner.os }}.zip

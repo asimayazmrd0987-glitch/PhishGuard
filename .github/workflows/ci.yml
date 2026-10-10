@@ -1,0 +1,63 @@
+# =============================================================================
+# CONTINUOUS INTEGRATION: runs automatically on every push and pull request.
+#
+# WHAT IT DOES
+#   1. "build-test"  : builds PhishGuard and runs the whole test suite on
+#                      Linux, Windows and macOS (different compilers: GCC, MSVC, Clang).
+#   2. "sanitizers"  : builds on Linux with AddressSanitizer + UBSan, which catch
+#                      memory errors and undefined behaviour that normal tests miss.
+#   3. Both jobs also run `phishguard --demo` as a smoke test: the program must start,
+#                      find its data/ folder and score the demo scenarios.
+#
+# WHY
+#   A green tick on a commit means "it compiles and passes all tests on three
+#   operating systems". It stops a change on one machine from silently breaking another,
+#   and it gives readers (and your examiner) evidence that the project really works.
+#
+# HOW TO READ IT
+#   `matrix` = run the same steps once per operating system.
+#   `--config Release` / `-C Release` are needed on Windows because Visual Studio
+#   builds are "multi-configuration"; on Linux/macOS they are harmless.
+# =============================================================================
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  build-test:
+    name: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false          # one failing OS must not hide results from the others
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+      - name: Build
+        run: cmake --build build --config Release
+      - name: Test
+        run: ctest --test-dir build -C Release --output-on-failure
+      - name: Smoke test (demo scenarios)
+        shell: bash
+        run: |
+          if [ -f build/Release/phishguard.exe ]; then BIN=build/Release/phishguard.exe; else BIN=build/phishguard; fi
+          "$BIN" --demo | tail -3
+
+  sanitizers:
+    name: linux + AddressSanitizer/UBSan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure with sanitizers
+        run: cmake -S . -B build -DPG_SANITIZE=ON -DCMAKE_BUILD_TYPE=Debug
+      - name: Build
+        run: cmake --build build
+      - name: Test
+        run: ctest --test-dir build --output-on-failure
+      - name: Smoke test
+        run: ./build/phishguard --demo | tail -3
