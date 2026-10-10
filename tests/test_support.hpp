@@ -6,6 +6,10 @@
 #pragma once
 #include "phishguard/security/detection_data.hpp"
 
+#ifndef PG_DATA_DIR
+#define PG_DATA_DIR "data"
+#endif
+
 // Loads the real data/ folder once for all tests.
 inline const phishguard::DetectionData& testData() {
     static const phishguard::DetectionData d = phishguard::DetectionData::loadFromDirectory(PG_DATA_DIR);

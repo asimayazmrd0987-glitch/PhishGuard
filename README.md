@@ -1,8 +1,5 @@
 # PhishGuard
 
-![CI](https://github.com/<your-username>/<your-repo>/actions/workflows/ci.yml/badge.svg)
-<!-- replace <your-username>/<your-repo> with your GitHub path so the badge works -->
-
 A data-structure-based phishing, scam-message and malicious-URL **risk analyzer** for non-technical users.
 Written in C++17. It gives a heuristic **Risk Score (0-100)**, explains every point of the score in plain
 language, and never claims a link is "safe" or "malicious".
