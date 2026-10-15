@@ -1,0 +1,68 @@
+# FILE: data/suspicious_phrases.txt
+# WHAT  Multi-word scam phrases, searched with the KMP algorithm. One indicator per category,
+#       however many phrases match.
+# FORMAT  phrase|category      categories: urgency, credential, financial, prize, delivery
+# NOTE  Write phrases in lower case. English only for now; adding local-language phrases here is
+#       the easiest way to make the tool useful for more people.
+#
+# phrase|category   (matched with KMP, one indicator per category)
+act now|urgency
+immediately|urgency
+right away|urgency
+within 24 hours|urgency
+within 48 hours|urgency
+last chance|urgency
+final notice|urgency
+expires today|urgency
+as soon as possible|urgency
+avoid permanent|urgency
+will be suspended|urgency
+will be blocked|urgency
+will be closed|urgency
+urgent action|urgency
+verify your account|credential
+confirm your identity|credential
+verify your identity|credential
+enter your password|credential
+share your otp|credential
+share your pin|credential
+send your otp|credential
+send your pin|credential
+update your details|credential
+confirm your details|credential
+log in to|credential
+login to|credential
+click the link to verify|credential
+your account has been suspended|credential
+your account has been locked|credential
+your account has been blocked|credential
+your account has been compromised|credential
+security alert|credential
+send money|financial
+pay a small fee|financial
+pay the fee|financial
+delivery fee|financial
+customs fee|financial
+processing fee|financial
+gift card|financial
+bank details|financial
+card number|financial
+wire transfer|financial
+western union|financial
+bitcoin|financial
+pay now|financial
+payment failed|financial
+you have won|prize
+you are the winner|prize
+claim your prize|prize
+lottery|prize
+congratulations|prize
+free gift|prize
+lucky draw|prize
+could not be delivered|delivery
+delivery attempt|delivery
+package is waiting|delivery
+parcel could not|delivery
+reschedule delivery|delivery
+track your package|delivery
+parcel is on hold|delivery

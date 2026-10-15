@@ -1,0 +1,23 @@
+# FILE: data/public_suffixes.txt
+# WHAT  Two-part endings such as co.uk, needed to find the 'main name' of a website
+#       (example.co.uk, not co.uk). A small hand-picked list: the full Public Suffix List
+#       (publicsuffix.org) would be the proper source for real use.
+#
+# Multi-part public suffixes (small hand-picked list; not the full Public Suffix List)
+co.uk
+org.uk
+ac.uk
+gov.uk
+com.pk
+org.pk
+edu.pk
+gov.pk
+net.pk
+com.au
+co.in
+co.jp
+com.br
+co.za
+com.tr
+co.nz
+com.cn

@@ -1,0 +1,47 @@
+# FILE: data/risk_config.txt
+# WHAT  Every tunable number: indicator weights (points), caps, limits and level thresholds.
+# HOW   Lines are key=value. Any key left out falls back to the built-in default.
+#       Levels use inclusive upper bounds: LOW <= 20, MEDIUM <= 40, HIGH <= 70, otherwise CRITICAL.
+# NOTE  These are expert-chosen, NOT statistically trained. To make the score more trustworthy,
+#       measure it on a labelled data set and adjust (see docs/ROADMAP.md).
+#
+# Overrides for built-in defaults. Delete a line to use the default.
+# --- indicator weights (points) ---
+weight.known_threat=50
+weight.lookalike=30
+weight.brand_embedded=25
+weight.ip_host=20
+weight.credential_request=15
+weight.financial_request=15
+weight.userinfo_trick=15
+weight.urgency=10
+weight.prize=10
+weight.delivery=10
+weight.suspicious_tld=10
+weight.many_subdomains=10
+weight.punycode=10
+weight.unusual_scheme=10
+weight.malformed=10
+weight.url_shortener=8
+weight.redirect_param=8
+weight.keyword=5
+weight.long_url=5
+weight.long_host=5
+weight.many_hyphens=5
+weight.digits_in_domain=5
+weight.encoded_chars=5
+weight.encoded_text=5
+weight.excessive_punct=5
+weight.all_caps=5
+weight.repeated_chars=3
+# --- caps and limits ---
+cap.keyword=25
+limit.long_url=75
+limit.long_host=30
+limit.many_subdomains=3
+limit.many_hyphens=3
+limit.encoded_chars=3
+# --- level thresholds (inclusive upper bounds): LOW<=20, MEDIUM<=40, HIGH<=70, else CRITICAL ---
+threshold.low_max=20
+threshold.medium_max=40
+threshold.high_max=70

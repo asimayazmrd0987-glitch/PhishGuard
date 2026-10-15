@@ -1,0 +1,21 @@
+# FILE: data/suspicious_tlds.txt
+# WHAT  Website endings (after the last dot) often reported as heavily used by throw-away scam sites.
+# NOTE  A heuristic ONLY: plenty of legitimate sites use some of these endings. Review the list
+#       against a current, reliable source before real-world use.
+#
+# Endings often reported by abuse trackers as heavily used by throw-away sites.
+# A heuristic only: many legitimate sites use some of them. Edit freely.
+xyz
+top
+click
+icu
+tk
+ml
+ga
+cf
+gq
+work
+zip
+cfd
+support
+buzz
