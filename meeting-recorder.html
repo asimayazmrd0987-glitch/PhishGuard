@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Meeting Capture</title>
+<style>
+:root{--bg:#f6f5f2;--card:#fff;--tx:#1c1c1a;--mut:#6b6b66;--bd:#e2e0da;--ac:#1f6feb;--rec:#d92d20;--ok:#1a7f4b}
+@media (prefers-color-scheme:dark){:root{--bg:#141413;--card:#1e1e1c;--tx:#ecebe6;--mut:#9a9a93;--bd:#33332f;--ac:#5b9dff;--rec:#ff6b5e;--ok:#4cc38a}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.5 system-ui,-apple-system,Segoe UI,sans-serif}
+main{max-width:980px;margin:0 auto;padding:24px 16px 60px}
+h1{font-size:22px;margin:0 0 4px}
+.sub{color:var(--mut);margin:0 0 20px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:16px;margin-bottom:16px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button,select{font:inherit;padding:8px 14px;border-radius:8px;border:1px solid var(--bd);background:var(--card);color:var(--tx);cursor:pointer}
+button.primary{background:var(--ac);color:#fff;border-color:var(--ac)}
+button.stop{background:var(--rec);color:#fff;border-color:var(--rec)}
+button:disabled{opacity:.45;cursor:not-allowed}
+.status{display:flex;align-items:center;gap:8px;margin-left:auto;font-variant-numeric:tabular-nums}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--mut)}
+.live .dot{background:var(--rec);animation:p 1.2s infinite}
+@keyframes p{50%{opacity:.3}}
+.meters{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+.meter label{font-size:13px;color:var(--mut);display:flex;justify-content:space-between}
+.bar{height:8px;background:var(--bd);border-radius:4px;overflow:hidden;margin-top:4px}
+.bar i{display:block;height:100%;width:0;background:var(--ok);transition:width .08s}
+h2{font-size:16px;margin:0 0 10px}
+#transcript{max-height:260px;overflow:auto;white-space:pre-wrap;font-size:14px}
+#transcript .t{color:var(--mut);font-variant-numeric:tabular-nums;margin-right:6px}
+#transcript .int{color:var(--mut)}
+.shots{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}
+.shots figure{margin:0;border:1px solid var(--bd);border-radius:8px;overflow:hidden;background:var(--bg)}
+.shots img{width:100%;display:block;cursor:pointer}
+.shots figcaption{font-size:12px;color:var(--mut);padding:4px 8px}
+.note{font-size:13px;color:var(--mut)}
+.warn{color:var(--rec)}
+.hd{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.hd h2{margin:0}
+@media (max-width:560px){.meters{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<main>
+  <h1>Meeting Capture</h1>
+  <p class="sub">Records your mic and the meeting’s audio together, takes screenshots, and transcribes your mic live. Everything stays in your browser.</p>
+
+  <div class="card">
+    <div class="row">
+      <button id="start" class="primary">Start capture</button>
+      <button id="stop" class="stop" disabled>Stop</button>
+      <button id="snap" disabled>Snap now</button>
+      <label class="note">Screenshot every
+        <select id="interval">
+          <option value="10">10 s</option><option value="30" selected>30 s</option>
+          <option value="60">1 min</option><option value="0">manual only</option>
+        </select>
+      </label>
+      <div class="status" id="status"><span class="dot"></span><span id="timer">00:00:00</span></div>
+    </div>
+    <div class="meters">
+      <div class="meter"><label><span>Your mic</span><span id="micState">off</span></label><div class="bar"><i id="micBar"></i></div></div>
+      <div class="meter"><label><span>System / meeting audio</span><span id="sysState">off</span></label><div class="bar"><i id="sysBar"></i></div></div>
+    </div>
+    <p class="note" id="msg" style="margin:12px 0 0">When the share dialog opens, choose the meeting tab (or entire screen) and tick <b>“Share tab audio”</b> / <b>“Share system audio”</b>. Use headphones to avoid echo.</p>
+  </div>
+
+  <div class="card">
+    <div class="hd"><h2>Live transcript (your mic)</h2><button id="dlTx" disabled>Download .txt</button></div>
+    <div id="transcript" class="note">Transcript will appear here.</div>
+  </div>
+
+  <div class="card">
+    <div class="hd"><h2>Recording</h2><span id="audioWrap" class="note">No recording yet.</span></div>
+  </div>
+
+  <div class="card">
+    <div class="hd"><h2>Screenshots <span class="note" id="shotCount"></span></h2><button id="dlShots" disabled>Download all</button></div>
+    <div class="shots" id="shots"></div>
+  </div>
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+let micStream, dispStream, ctx, dest, recorder, chunks = [], recog, running = false;
+let t0 = 0, timerId, shotId, meterId, micAn, sysAn;
+let shots = [], lines = [], lastAudioUrl = null;
+
+const pad = n => String(n).padStart(2, '0');
+const stamp = ms => { const s = Math.floor(ms / 1000); return `${pad(Math.floor(s / 3600))}:${pad(Math.floor(s % 3600 / 60))}:${pad(s % 60)}`; };
+const msg = (t, bad) => { $('msg').textContent = t; $('msg').classList.toggle('warn', !!bad); };
+
+function level(an) {
+  if (!an) return 0;
+  const d = new Uint8Array(an.fftSize); an.getByteTimeDomainData(d);
+  let m = 0; for (const v of d) m = Math.max(m, Math.abs(v - 128));
+  return Math.min(100, m / 128 * 160);
+}
+function analyser(stream) {
+  const a = ctx.createAnalyser(); a.fftSize = 512;
+  const src = ctx.createMediaStreamSource(stream);
+  src.connect(a); src.connect(dest);
+  return a;
+}
+
+async function start() {
+  try {
+    micStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
+  } catch (e) { msg('Microphone access was denied: ' + e.message, true); return; }
+
+  try {
+    dispStream = await navigator.mediaDevices.getDisplayMedia({ video: { frameRate: 5 }, audio: true });
+  } catch (e) {
+    micStream.getTracks().forEach(t => t.stop());
+    msg('Screen share was cancelled or blocked: ' + e.message, true); return;
+  }
+
+  ctx = new AudioContext(); dest = ctx.createMediaStreamDestination();
+  micAn = analyser(micStream); $('micState').textContent = 'on';
+  const sysTracks = dispStream.getAudioTracks();
+  if (sysTracks.length) { sysAn = analyser(new MediaStream(sysTracks)); $('sysState').textContent = 'on'; }
+  else { sysAn = null; $('sysState').textContent = 'not shared'; msg('No system audio was shared. Restart and tick “Share tab audio” (best with Chrome and a browser tab, or Windows entire screen).', true); }
+
+  // hidden video element used for screenshots
+  window.vid = document.createElement('video');
+  vid.muted = true; vid.srcObject = new MediaStream(dispStream.getVideoTracks());
+  await vid.play().catch(() => {});
+
+  // recorder
+  chunks = [];
+  const mime = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4'].find(m => MediaRecorder.isTypeSupported(m));
+  recorder = new MediaRecorder(dest.stream, mime ? { mimeType: mime } : undefined);
+  recorder.ondataavailable = e => e.data.size && chunks.push(e.data);
+  recorder.onstop = finishAudio;
+  recorder.start(5000);
+
+  // reset UI/state
+  shots.forEach(s => URL.revokeObjectURL(s.url)); shots = []; lines = [];
+  $('shots').innerHTML = ''; $('transcript').innerHTML = ''; $('transcript').classList.remove('note');
+  $('audioWrap').textContent = 'Recording…'; updateCounts();
+
+  running = true; t0 = Date.now();
+  document.body.classList.add('live'); $('status').classList.add('live');
+  $('start').disabled = true; $('stop').disabled = false; $('snap').disabled = false;
+  timerId = setInterval(() => $('timer').textContent = stamp(Date.now() - t0), 500);
+  meterId = setInterval(() => { $('micBar').style.width = level(micAn) + '%'; $('sysBar').style.width = level(sysAn) + '%'; }, 80);
+  scheduleShots();
+  setTimeout(snap, 800);
+  startSpeech();
+  dispStream.getVideoTracks()[0].addEventListener('ended', stop);
+  if (sysTracks.length) msg('Capturing mic + meeting audio + screenshots.');
+}
+
+function scheduleShots() {
+  clearInterval(shotId);
+  const s = +$('interval').value;
+  if (s > 0) shotId = setInterval(snap, s * 1000);
+}
+$('interval').onchange = () => running && scheduleShots();
+
+function snap() {
+  if (!running || !vid.videoWidth) return;
+  const w = Math.min(1280, vid.videoWidth), h = Math.round(vid.videoHeight * w / vid.videoWidth);
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  c.getContext('2d').drawImage(vid, 0, 0, w, h);
+  const at = stamp(Date.now() - t0);
+  c.toBlob(b => {
+    const url = URL.createObjectURL(b);
+    shots.push({ blob: b, url, at });
+    const f = document.createElement('figure');
+    f.innerHTML = `<img src="${url}" alt="Screenshot at ${at}"><figcaption>${at}</figcaption>`;
+    f.querySelector('img').onclick = () => window.open(url, '_blank');
+    $('shots').prepend(f); updateCounts();
+  }, 'image/jpeg', 0.75);
+}
+$('snap').onclick = snap;
+
+// Live transcription (mic only; browser speech API)
+function startSpeech() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { $('transcript').innerHTML = '<span class="warn">Live transcription isn’t supported in this browser. Use Chrome or Edge.</span>'; return; }
+  recog = new SR(); recog.continuous = true; recog.interimResults = true; recog.lang = 'en-US';
+  let interimEl = null;
+  recog.onresult = e => {
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      const r = e.results[i], text = r[0].transcript.trim();
+      if (!text) continue;
+      if (!interimEl) { interimEl = document.createElement('div'); $('transcript').appendChild(interimEl); }
+      if (r.isFinal) {
+        const at = stamp(Date.now() - t0);
+        lines.push(`[${at}] ${text}`);
+        interimEl.innerHTML = `<span class="t">${at}</span>`; interimEl.appendChild(document.createTextNode(text));
+        interimEl = null; $('dlTx').disabled = false;
+      } else { interimEl.className = 'int'; interimEl.textContent = text; }
+      $('transcript').scrollTop = 1e9;
+    }
+  };
+  recog.onend = () => { if (running) try { recog.start(); } catch (_) {} };
+  recog.onerror = e => { if (e.error === 'not-allowed') msg('Speech recognition permission denied.', true); };
+  try { recog.start(); } catch (_) {}
+}
+
+function stop() {
+  if (!running) return; running = false;
+  clearInterval(timerId); clearInterval(shotId); clearInterval(meterId);
+  try { recog && recog.stop(); } catch (_) {}
+  if (recorder && recorder.state !== 'inactive') recorder.stop();
+  [micStream, dispStream].forEach(s => s && s.getTracks().forEach(t => t.stop()));
+  ctx && ctx.close();
+  $('status').classList.remove('live'); $('start').disabled = false; $('stop').disabled = true; $('snap').disabled = true;
+  $('micBar').style.width = $('sysBar').style.width = '0'; $('micState').textContent = $('sysState').textContent = 'off';
+  msg('Stopped. Download your recording, transcript and screenshots below.');
+}
+$('start').onclick = start; $('stop').onclick = stop;
+
+function finishAudio() {
+  const type = recorder.mimeType || 'audio/webm';
+  const blob = new Blob(chunks, { type });
+  if (lastAudioUrl) URL.revokeObjectURL(lastAudioUrl);
+  lastAudioUrl = URL.createObjectURL(blob);
+  const ext = type.includes('mp4') ? 'm4a' : 'webm';
+  $('audioWrap').innerHTML = `<audio controls src="${lastAudioUrl}" style="vertical-align:middle;max-width:100%"></audio> <a href="${lastAudioUrl}" download="meeting-${fileStamp()}.${ext}"><button>Download audio</button></a>`;
+}
+
+const fileStamp = () => new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-');
+function dl(url, name) { const a = document.createElement('a'); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove(); }
+
+$('dlTx').onclick = () => {
+  const u = URL.createObjectURL(new Blob([lines.join('\n')], { type: 'text/plain' }));
+  dl(u, `transcript-${fileStamp()}.txt`); setTimeout(() => URL.revokeObjectURL(u), 2000);
+};
+$('dlShots').onclick = () => shots.forEach((s, i) => setTimeout(() => dl(s.url, `shot-${s.at.replace(/:/g, '')}.jpg`), i * 250));
+
+function updateCounts() {
+  $('shotCount').textContent = shots.length ? `(${shots.length})` : '';
+  $('dlShots').disabled = !shots.length;
+}
+window.addEventListener('beforeunload', e => { if (running) { e.preventDefault(); e.returnValue = ''; } });
+</script>
+</body>
+</html>
