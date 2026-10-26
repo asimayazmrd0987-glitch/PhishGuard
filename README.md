@@ -5,7 +5,7 @@
 > **Educational prototype, not a production security product.** PhishGuard examines the text you provide and reports heuristic warning signs. It does not open URLs, contact websites, perform DNS lookups, call reputation services, or use a trained machine-learning model. A score is not a probability: a low score does not prove safety, and a high score does not prove malicious intent.
 
 ---
-## Actually this is my 3rd Semester Data Structure and Algorithm Project.
+## Actually This Is My 3rd Semester Data Structure and Algorithm Project(Early 2028).
 
 ## Contents
 
