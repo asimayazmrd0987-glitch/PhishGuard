@@ -95,6 +95,27 @@ URGENT: Your account will be suspended. Verify your details at https://example.t
 
 These are warning signs, not proof by themselves. Real organizations can send legitimate alerts, and a scam message can avoid the keywords the tool watches for.
 
+### Personal-safety checks
+
+Message and email scans also look for four kinds of high-confidence harmful language that are separate from phishing:
+
+- **Direct threats of violence** (for example, “I will kill you”): HIGH by default.
+- **Self-harm or suicide risk** (for example, “I want to die” or “kill yourself”): HIGH by default.
+- **Blackmail or extortion** (for example, “I have your photos; pay me or I will share them”): HIGH by default.
+- **Targeted harassment** (for example, “You are worthless”): MEDIUM by default.
+
+A match appears as a `phrase_threat`, `phrase_self_harm`, `phrase_extortion` or `phrase_harassment` indicator in the **Safety** category. The recommendation changes to advice about saving evidence, not meeting or paying the sender, blocking/reporting, and contacting local emergency services when there is immediate danger.
+
+Example:
+
+```text
+I will kill you
+```
+
+This should produce a **HIGH** result and a direct-threat warning, not “probably safe.” Safety phrases are matched as whole words, so technical text such as “I will kill your process” does not trigger the same rule.
+
+PhishGuard is not an emergency or crisis service. If you or someone else is in immediate danger, contact local emergency services or a trusted crisis line. This feature is pattern matching: it can miss threats, quoted speech, sarcasm, other languages, and indirect wording.
+
 ---
 
 ## 5. Menu option 3 — Scan email text

@@ -71,6 +71,7 @@ These are reliability limits, not a hardened sandbox. A caller embedding the lib
 - False positives and false negatives are expected. The demos include both.
 - Trusted-domain and threat lists are only as good as their local entries.
 - Unicode/IDN confusables, homoglyphs and many languages are only partially handled.
+- Safety-language checks are high-confidence phrase rules, not a clinical, threat-assessment or emergency service. They can miss indirect threats, quoted speech, sarcasm, other languages and novel wording, and they can flag text that merely discusses violence. Never delay contacting emergency services because the tool returned a LOW score.
 - A LOW score does not prove safety. A HIGH/CRITICAL score does not prove malicious intent.
 
 ## Reporting a vulnerability

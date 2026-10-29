@@ -1,11 +1,14 @@
 # FILE: data/suspicious_phrases.txt
 # WHAT  Multi-word scam phrases, searched with the KMP algorithm. One indicator per category,
 #       however many phrases match.
-# FORMAT  phrase|category      categories: urgency, credential, financial, prize, delivery
+# FORMAT  phrase|category      categories: urgency, credential, financial, prize, delivery,
+#                              threat, self_harm, extortion, harassment
 # NOTE  Write phrases in lower case. English only for now; adding local-language phrases here is
 #       the easiest way to make the tool useful for more people.
+#       The four safety categories are matched on whole words (not raw substrings), so
+#       "kill you" does not also match "kill your" or "kill yourself".
 #
-# phrase|category   (matched with KMP, one indicator per category)
+# phrase|category   (KMP for scam categories; whole-word matching for safety categories)
 act now|urgency
 immediately|urgency
 right away|urgency
@@ -66,3 +69,140 @@ parcel could not|delivery
 reschedule delivery|delivery
 track your package|delivery
 parcel is on hold|delivery
+# --- personal safety: direct threats of violence ---
+kill you|threat
+kill u|threat
+kill ya|threat
+kill your family|threat
+kill your kids|threat
+kill your children|threat
+kill your wife|threat
+kill your husband|threat
+kill your parents|threat
+murder you|threat
+murder u|threat
+shoot you|threat
+shoot u|threat
+stab you|threat
+stab u|threat
+strangle you|threat
+choke you|threat
+rape you|threat
+beat you up|threat
+beat you to death|threat
+break your legs|threat
+break your neck|threat
+slit your throat|threat
+cut your throat|threat
+i will hurt you|threat
+i'll hurt you|threat
+i am going to hurt you|threat
+i'm going to hurt you|threat
+i'm gonna hurt you|threat
+going to hurt you|threat
+gonna hurt you|threat
+hurt your family|threat
+you are dead|threat
+you're dead|threat
+you will die|threat
+you'll die|threat
+you are going to die|threat
+you're going to die|threat
+you're gonna die|threat
+i will kill him|threat
+i will kill her|threat
+i will kill them|threat
+i'll kill him|threat
+i'll kill her|threat
+i'll kill them|threat
+i will find you|threat
+i'll find you|threat
+i know where you live|threat
+watch your back|threat
+sleep with one eye open|threat
+i will end you|threat
+i'll end you|threat
+end your life|threat
+i will take your life|threat
+you will regret this|threat
+you'll regret this|threat
+i will make you pay|threat
+i'll make you pay|threat
+i will destroy you|threat
+i'll destroy you|threat
+i will come for you|threat
+i'll come for you|threat
+death to you|threat
+you deserve to die|threat
+# --- personal safety: self-harm and suicide risk ---
+i am going to kill myself|self_harm
+i'm going to kill myself|self_harm
+i will kill myself|self_harm
+i'll kill myself|self_harm
+i want to kill myself|self_harm
+i might kill myself|self_harm
+i should kill myself|self_harm
+going to kill myself|self_harm
+gonna kill myself|self_harm
+kill myself|self_harm
+kill my self|self_harm
+kill yourself|self_harm
+kill urself|self_harm
+kill himself|self_harm
+kill herself|self_harm
+kill themselves|self_harm
+kys|self_harm
+go die|self_harm
+go kill yourself|self_harm
+end my life|self_harm
+i want to die|self_harm
+i wanna die|self_harm
+i don't want to live|self_harm
+i do not want to live|self_harm
+better off dead|self_harm
+hurt myself|self_harm
+self harm|self_harm
+self-harm|self_harm
+selfharm|self_harm
+commit suicide|self_harm
+suicide attempt|self_harm
+suicidal|self_harm
+# --- personal safety: blackmail and extortion ---
+blackmail|extortion
+sextortion|extortion
+i will blackmail you|extortion
+i'm blackmailing you|extortion
+i have your nudes|extortion
+i will share your photos|extortion
+i'll share your photos|extortion
+i will leak your|extortion
+i'll leak your|extortion
+i will expose you|extortion
+i'll expose you|extortion
+i have your password|extortion
+i know your password|extortion
+pay me or|extortion
+pay or i will|extortion
+give me money or|extortion
+i will ruin your life|extortion
+i'll ruin your life|extortion
+you have 24 hours to pay|extortion
+you have 48 hours to pay|extortion
+# --- personal safety: harassment and degrading language ---
+you are worthless|harassment
+you're worthless|harassment
+you are pathetic|harassment
+you're pathetic|harassment
+you are useless|harassment
+you're useless|harassment
+nobody likes you|harassment
+nobody loves you|harassment
+you should die|harassment
+you are an idiot|harassment
+you're an idiot|harassment
+you are stupid|harassment
+you're stupid|harassment
+you are ugly|harassment
+you're ugly|harassment
+you are a loser|harassment
+you're a loser|harassment

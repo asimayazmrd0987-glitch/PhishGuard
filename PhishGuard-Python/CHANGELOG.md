@@ -20,9 +20,10 @@ All notable changes to the Python edition are documented here. The format follow
 - Atomic history and data writes (temporary file + `os.replace` + best-effort directory sync).
 - Versioned history header, owner-only permissions on POSIX, and malformed-line recovery with warnings.
 - `scan_email`, `scan_auto`, `DataSummary`, `TrustedDomainStore.snapshot()` and `py.typed`.
+- Message/email safety checks for direct violent threats, self-harm/suicide risk, blackmail/extortion and targeted harassment, with a dedicated `Safety` indicator category, configurable weights and safety-specific recommendations.
 - Packaging metadata, `phishguard` console script, editable data files under `share/phishguard/data`, optional `dev` extras and tool configuration.
 - `docs/CLI.md`, `docs/DEVELOPMENT.md`, `docs/SECURITY.md`, `CONTRIBUTING.md` and this changelog.
-- CLI, hardening, batch, reporting, validation and atomic-I/O tests (53 tests total).
+- CLI, hardening, batch, reporting, validation, safety-detection and atomic-I/O tests (58 tests total).
 
 ### Changed
 
@@ -43,6 +44,7 @@ All notable changes to the Python edition are documented here. The format follow
 - Unknown configuration keys are reported instead of being silently accepted.
 - Batch scans no longer crash on one invalid line.
 - Interactive menu batch results use the same auto-detection and ranking as the CLI.
+- A direct message such as `I will kill you` is no longer reported as LOW with no indicators; safety phrases are matched on whole words and produce a specific recommendation.
 
 ### Compatibility
 

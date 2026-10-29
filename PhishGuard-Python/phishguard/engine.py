@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from dataclasses import replace
+from typing import Optional
 
 from .algorithms import merge_sort
 from .analyzers import MessageAnalyzer, UrlAnalysis, UrlAnalyzer
@@ -12,6 +13,32 @@ from .url_parser import looks_like_url
 
 
 class RiskEngine:
+    SAFETY_RECOMMENDATIONS = (
+        (
+            'phrase_self_harm',
+            'This message mentions self-harm or suicide. If you are thinking about harming yourself, '
+            'contact local emergency services or a crisis line now and reach out to someone you trust. '
+            'If someone sent this to you, treat it as abusive and seek support.',
+        ),
+        (
+            'phrase_threat',
+            'This message contains a direct threat of violence. Do not reply, do not meet the sender, '
+            'and do not share your location. Save the message as evidence, block the sender, and contact '
+            'local emergency services if you believe the threat is immediate.',
+        ),
+        (
+            'phrase_extortion',
+            'This message uses blackmail or extortion pressure. Do not pay, do not send images or '
+            'verification codes, and keep the evidence. Save screenshots, block the sender, and report it '
+            'to the platform or local authorities.',
+        ),
+        (
+            'phrase_harassment',
+            'This message contains abusive or degrading language. Do not engage. Save evidence if you '
+            'need it, block and report the sender, and tell someone you trust.',
+        ),
+    )
+
     def __init__(self, config: RiskConfig):
         self.config = config
 
@@ -50,11 +77,23 @@ class RiskEngine:
             score=score,
             level=level,
             indicators=retained,
-            recommendation=self.recommendation_for(level),
+            recommendation=self.recommendation_for(level, retained),
         )
 
-    @staticmethod
-    def recommendation_for(level: RiskLevel) -> str:
+    @classmethod
+    def recommendation_for(
+        cls,
+        level: RiskLevel,
+        indicators: Optional[list[Indicator]] = None,
+    ) -> str:
+        present = {indicator.id for indicator in indicators or ()}
+        safety_advice = [
+            message
+            for indicator_id, message in cls.SAFETY_RECOMMENDATIONS
+            if indicator_id in present
+        ]
+        if safety_advice:
+            return '\n\n'.join(safety_advice)
         if level == RiskLevel.LOW:
             return 'Probably safe based on the checks we ran, but stay careful. If you did not expect this, confirm it through an official website or app.'
         if level == RiskLevel.MEDIUM:

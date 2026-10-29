@@ -156,16 +156,58 @@ class UrlAnalyzer:
 class MessageAnalyzer:
     MAX_LENGTH = 10000
     MAX_URLS = 5
+    SAFETY_CATEGORIES = frozenset({'threat', 'self_harm', 'extortion', 'harassment'})
     CATEGORY_INFO = {
         'urgency': ('weight.urgency', 'The message tries to rush you. Scammers create pressure so you act before thinking.'),
         'credential': ('weight.credential_request', 'The message asks you to verify or share account details such as a password, PIN or code.'),
         'financial': ('weight.financial_request', 'The message asks for money, fees or payment details.'),
         'prize': ('weight.prize', 'The message says you won something. Unexpected prizes are a very common scam.'),
         'delivery': ('weight.delivery', 'The message mentions a parcel or delivery problem, a very common scam theme.'),
+        'threat': ('weight.threat', 'The message contains a direct threat of violence or harm.'),
+        'self_harm': ('weight.self_harm', 'The message mentions self-harm or suicide.'),
+        'extortion': ('weight.extortion', 'The message uses blackmail or extortion pressure.'),
+        'harassment': ('weight.harassment', 'The message contains abusive or degrading language.'),
     }
     def __init__(self, data: DetectionData):
         self.data = data
         self.url_analyzer = UrlAnalyzer(data)
+        self._safety_phrase_tokens = {
+            phrase.text: tuple(self._tokens(phrase.text))
+            for phrase in data.phrases
+            if phrase.category in self.SAFETY_CATEGORIES
+        }
+
+    @staticmethod
+    def _tokens(value: str) -> list[str]:
+        """Split text into lower-case words so safety phrases match whole words.
+
+        A plain substring search would match "kill you" inside "kill your" and
+        inside "kill yourself". Token matching keeps those cases separate and
+        avoids surprising flags such as "kill your process". Any non-ASCII
+        character (emoji, smart punctuation) acts as a word separator.
+        """
+        out: list[str] = []
+        current: list[str] = []
+        for char in value.lower():
+            if is_alnum_char(char):
+                current.append(char)
+            elif current:
+                out.append(''.join(current))
+                current = []
+        if current:
+            out.append(''.join(current))
+        return out
+
+    @staticmethod
+    def _contains_token_phrase(tokens: list[str], phrase_tokens: tuple[str, ...]) -> bool:
+        if not phrase_tokens or len(phrase_tokens) > len(tokens):
+            return False
+        first = phrase_tokens[0]
+        width = len(phrase_tokens)
+        for index in range(len(tokens) - width + 1):
+            if tokens[index] == first and tuple(tokens[index:index + width]) == phrase_tokens:
+                return True
+        return False
 
     @staticmethod
     def _has_long_run(value: str, min_run: int, letters_only: bool) -> bool:
@@ -189,11 +231,17 @@ class MessageAnalyzer:
         res = MessageAnalysis()
         out = res.indicators
         lowered = msg.lower()
+        tokens = self._tokens(lowered)
         seen_category = CustomSet[str]()
         for phrase in self.data.phrases:
-            if not kmp_search(lowered, phrase.text) or not seen_category.insert(phrase.category): continue
+            if phrase.category in self.SAFETY_CATEGORIES:
+                matched = self._contains_token_phrase(tokens, self._safety_phrase_tokens.get(phrase.text, ()))
+            else:
+                matched = bool(kmp_search(lowered, phrase.text))
+            if not matched or not seen_category.insert(phrase.category): continue
             key, explanation = self.CATEGORY_INFO.get(phrase.category, ('weight.keyword', 'The message contains wording often used in scams.'))
-            out.append(Indicator('phrase_' + phrase.category, f'{explanation} (for example: "{phrase.text}")', cfg.weight(key), IndicatorCategory.MESSAGE, phrase.text))
+            category = IndicatorCategory.SAFETY if phrase.category in self.SAFETY_CATEGORIES else IndicatorCategory.MESSAGE
+            out.append(Indicator('phrase_' + phrase.category, f'{explanation} (for example: "{phrase.text}")', cfg.weight(key), category, phrase.text))
         seen_word = CustomSet[str]()
         for match in self.data.keywords.scan_text(msg):
             if not seen_word.insert(match.word): continue

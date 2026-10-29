@@ -36,10 +36,10 @@ _log = get_logger('ui')
 
 def _level_message(level: RiskLevel) -> str:
     return {
-        RiskLevel.LOW: 'Probably safe based on available indicators, but you should still be careful.',
-        RiskLevel.MEDIUM: 'Some suspicious characteristics were detected.',
-        RiskLevel.HIGH: 'Multiple suspicious characteristics were detected.',
-        RiskLevel.CRITICAL: 'Strong indicators of phishing or scam behavior were detected.',
+        RiskLevel.LOW: 'No strong warning signs were found, but you should still be careful.',
+        RiskLevel.MEDIUM: 'Some warning signs were detected.',
+        RiskLevel.HIGH: 'Strong warning signs were detected.',
+        RiskLevel.CRITICAL: 'Very strong warning signs were detected. Treat this as dangerous until verified.',
     }[level]
 
 

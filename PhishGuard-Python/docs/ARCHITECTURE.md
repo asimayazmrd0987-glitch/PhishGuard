@@ -68,7 +68,7 @@ Detectors produce `Indicator` records rather than changing the score directly. E
 - `data/trusted_domains.txt`: `domain|brand|category`.
 - `data/sample_threats.txt`: `domain|category|risk|note` (the supplied domains are synthetic).
 - `data/suspicious_keywords.txt`: `word|category|weight`.
-- `data/suspicious_phrases.txt`: `phrase|category`.
+- `data/suspicious_phrases.txt`: `phrase|category` (scam categories plus whole-word safety categories: `threat`, `self_harm`, `extortion`, `harassment`).
 - `data/suspicious_tlds.txt`, `data/url_shorteners.txt`, `data/known_tlds.txt`, `data/public_suffixes.txt`: one item per line.
 
 Additions should be reviewed before real-world use. In particular, an incorrect threat-list entry can unfairly label a legitimate domain.

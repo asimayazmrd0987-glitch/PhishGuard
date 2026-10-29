@@ -82,11 +82,13 @@ All files live in `data/` and use `#` comments plus simple pipe-delimited rows. 
 | `trusted_domains.txt` | `domain\|brand\|category` |
 | `sample_threats.txt` | `domain\|category\|risk\|note` |
 | `suspicious_keywords.txt` | `word\|category\|weight` |
-| `suspicious_phrases.txt` | `phrase\|category` |
+| `suspicious_phrases.txt` | `phrase\|category` (scam or safety category) |
 | `suspicious_tlds.txt` | one suffix per line |
 | `url_shorteners.txt` | one host per line |
 | `known_tlds.txt` | one suffix per line |
 | `public_suffixes.txt` | one multi-label suffix per line |
+
+Phrase categories `urgency`, `credential`, `financial`, `prize` and `delivery` are general scam signals. The categories `threat`, `self_harm`, `extortion` and `harassment` are personal-safety signals: they are matched on whole words (so `kill you` does not match `kill your process`), use the `Safety` indicator category, and replace the normal phishing recommendation with safety-specific advice. Their weights are `weight.threat`, `weight.self_harm`, `weight.extortion` and `weight.harassment`.
 
 Run `phishguard data validate --strict` after editing. Keep sample threat entries synthetic (`.test`, documentation IP ranges) unless you have a reliable, attributable source.
 

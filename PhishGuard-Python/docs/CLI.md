@@ -93,7 +93,10 @@ Only one input source may be used. If stdin is not a terminal and no source is s
 phishguard scan "https://paypa1.com/signin"
 phishguard scan --file email.txt --type email --json --redact
 cat message.txt | phishguard scan --stdin --type message
+phishguard scan "I will kill you" --type message --no-history
 ```
+
+Message and email scans also run whole-word personal-safety checks for direct violence threats, self-harm/suicide risk, extortion and targeted harassment. A match uses the `Safety` indicator category and a safety-specific recommendation; for example, `I will kill you` returns a HIGH result with `phrase_threat`. These checks are heuristics, not an emergency service.
 
 ## `batch`
 

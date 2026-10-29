@@ -34,6 +34,11 @@ weight.encoded_text=5
 weight.excessive_punct=5
 weight.all_caps=5
 weight.repeated_chars=3
+# --- personal-safety phrases (not phishing, but a direct risk to the reader) ---
+weight.threat=60
+weight.self_harm=65
+weight.extortion=50
+weight.harassment=25
 # --- caps and limits ---
 cap.keyword=25
 limit.long_url=75

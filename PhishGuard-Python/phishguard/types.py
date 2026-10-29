@@ -22,6 +22,7 @@ class IndicatorCategory(str, Enum):
     KEYWORD = 'Keyword'
     MESSAGE = 'Message'
     SIMILARITY = 'Similarity'
+    SAFETY = 'Safety'
 
 @dataclass
 class Indicator:

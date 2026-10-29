@@ -4,6 +4,8 @@ PhishGuard is a local, explainable risk analyzer for suspicious links and scam-l
 
 **Important:** the score is a heuristic from 0–100, not a probability or proof. PhishGuard does not open links, resolve DNS, contact remote servers, use machine learning, or call an external API. The included threat entries use synthetic `.test` domains and documentation IP ranges.
 
+Message and email scans also check high-confidence personal-safety language: direct threats of violence, self-harm or suicide risk, blackmail/extortion, and targeted harassment. These matches are reported separately from phishing indicators and switch the recommendation to safety-specific advice. PhishGuard is **not** an emergency or crisis service; if someone is in immediate danger, contact local emergency services.
+
 **Version:** `2.0.0` · **Runtime dependencies:** none (Python standard library only) · **Python:** 3.10+
 
 ## Quick start
@@ -159,6 +161,21 @@ Each detector emits an `Indicator` with a stable ID, plain-language description,
 Default score bands: LOW ≤ 20; MEDIUM ≤ 40; HIGH ≤ 70; CRITICAL > 70. All weights and thresholds are judgement-based and editable; they are not statistically trained.
 
 Configuration and data files are validated on load. Negative weights/caps, non-positive limits, out-of-order thresholds, malformed records and missing required files fail with a clear error. Editable data and history files are written atomically (temporary file + `os.replace`), and history is created with owner-only permissions where the platform supports it.
+
+## Message-scan safety checks
+
+Scam detection is not the only kind of harmful text. Message and email scans therefore include four high-confidence safety categories:
+
+| Category | Examples of matched language | Default weight | Default level |
+|---|---|---:|---|
+| `threat` | direct threats of violence or harm | 60 | HIGH |
+| `self_harm` | self-harm or suicide statements, or telling someone to self-harm | 65 | HIGH |
+| `extortion` | blackmail, sextortion, or demands backed by threats | 50 | HIGH |
+| `harassment` | targeted insults and degrading language | 25 | MEDIUM |
+
+Safety phrases are matched as **whole words**, not raw substrings, so `kill you` does not fire on `kill your process`, and `kill yourself` is not treated as the same phrase as `kill you`. A message such as `I will kill you` now produces a HIGH result with a `phrase_threat` indicator, instead of a misleading LOW result. The recommendation changes to advice about saving evidence, not meeting the sender, blocking/reporting, and contacting emergency services when there is immediate danger.
+
+The phrases live in `data/suspicious_phrases.txt` and the weights live in `data/risk_config.txt`, so both are editable. This remains pattern matching: it cannot understand context, sarcasm, quoted speech or every language. Do not rely on it as a substitute for emergency services or professional support.
 
 ## Privacy and safety
 
