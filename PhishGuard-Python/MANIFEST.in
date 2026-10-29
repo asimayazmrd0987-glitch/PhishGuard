@@ -1,0 +1,11 @@
+include README.md
+include LICENSE
+include CHANGELOG.md
+include CONTRIBUTING.md
+include requirements.txt
+include PhishGuard-Menu-User-Guide.md
+include phishguard/py.typed
+recursive-include data *.txt
+recursive-include docs *.md
+recursive-include tests *.py
+global-exclude __pycache__ *.py[cod] *.tmp

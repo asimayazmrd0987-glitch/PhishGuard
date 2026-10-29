@@ -3,10 +3,10 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Optional
 from .algorithms import edit_distance, similarity, kmp_search, rabin_karp_search
-from .detection_data import DetectionData, Phrase
+from .detection_data import DetectionData
 from .ds import CustomSet, KeywordMatch
-from .text_utils import (trim, to_lower, normalize_lookalikes, split, split_any,
-                         is_alpha_char, is_digit_char, is_alnum_char, starts_with)
+from .text_utils import (trim, normalize_lookalikes, split, split_any,
+                         is_alpha_char, is_digit_char, is_alnum_char)
 from .types import Indicator, IndicatorCategory, ImpersonationMatch
 from .url_parser import ParsedUrl, UrlParser
 
@@ -178,8 +178,11 @@ class MessageAnalyzer:
 
     def analyze(self, input_text: str) -> MessageAnalysis:
         msg = trim(input_text)
-        if not msg: raise ValueError('Nothing was entered.')
-        if len(msg) > self.MAX_LENGTH: raise ValueError('The text is too long (limit is 10000 characters).')
+        if not msg:
+            raise ValueError('Nothing was entered.')
+        max_length = self.data.config.value('limit.max_message')
+        if len(msg) > max_length:
+            raise ValueError(f'The text is too long (limit is {max_length} characters).')
         if any(ord(c) < 0x20 and c not in '\n\r\t' for c in msg):
             raise ValueError('The text contains unreadable control characters.')
         cfg = self.data.config
@@ -208,7 +211,8 @@ class MessageAnalyzer:
             out.append(Indicator('repeated_chars', 'The message has stretched-out words such as "heyyyy", common in spam.', cfg.weight('weight.repeated_chars'), IndicatorCategory.MESSAGE, ''))
         for token in split_any(msg, ' \t\r\n'):
             lower = token.lower()
-            if len(token) < 24 or '://' in token or lower.startswith('www.'): continue
+            if len(token) < 24 or '://' in token or lower.startswith('www.'):
+                continue
             letter = digit = False
             allowed = True
             for c in token:
@@ -219,8 +223,10 @@ class MessageAnalyzer:
                 out.append(Indicator('encoded_text', 'The message contains a long scrambled-looking string that may hide something.', cfg.weight('weight.encoded_text'), IndicatorCategory.MESSAGE, ''))
                 break
         count = 0
+        max_urls = self.data.config.value('limit.max_urls')
         for url in UrlParser.extract_urls(msg, self.data.known_tlds):
-            if count >= self.MAX_URLS: break
+            if count >= max_urls:
+                break
             count += 1
             ua = self.url_analyzer.analyze(url)
             out.extend(ua.indicators)

@@ -1,9 +1,8 @@
 """Lightweight, deterministic DSA demonstrations; measured timings vary by computer."""
 from __future__ import annotations
 import random, time
-from .algorithms import merge_sort, binary_search, naive_search, kmp_search, rabin_karp_search
+from .algorithms import naive_search, kmp_search, rabin_karp_search
 from .ds import HashTable, Trie, MaxHeap
-from .types import RiskLevel
 
 
 def run_benchmarks(out=print, sizes=(100, 1000, 10000)) -> None:

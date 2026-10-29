@@ -3,7 +3,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-import string
+
+from .files import read_text_file
 
 
 def to_lower(value: str) -> str:
@@ -52,7 +53,11 @@ def normalize_lookalikes(value: str) -> str:
 
 def _is_secret_word(word: str) -> bool:
     word = word.rstrip(':=,.').lower()
-    return word in {'password', 'passcode', 'passwd', 'pwd', 'pin', 'otp', 'cvv'}
+    return word in {
+        'password', 'passcode', 'passwd', 'pwd', 'passphrase',
+        'pin', 'otp', 'cvv', 'token', 'secret', 'api_key', 'apikey',
+        'authorization', 'auth', 'cookie', 'session',
+    }
 
 def _mask_digit_runs(value: str) -> str:
     out, i = [], 0
@@ -121,7 +126,7 @@ class DataLine:
 def read_data_lines(path: str | Path) -> list[DataLine]:
     p = Path(path)
     try:
-        lines = p.read_text(encoding='utf-8').splitlines()
+        lines = read_text_file(p).splitlines()
     except OSError as exc:
         raise RuntimeError(f'cannot open data file: {p}') from exc
     out = []

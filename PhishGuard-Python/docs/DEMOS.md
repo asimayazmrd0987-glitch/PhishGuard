@@ -1,6 +1,14 @@
 # Demo scenarios
 
-Run `python main.py --demo` to try the 14 deterministic examples. The program prints the matched indicators, score band and recommendation.
+Run `python main.py --demo` to try the 14 deterministic examples. The program prints the matched indicators, score band and recommendation. The same scenarios are available from interactive menu option 12.
+
+```bash
+python main.py --demo
+python -m phishguard demo --json
+python -m phishguard demo --strict   # exit 1 if any scenario leaves its expected band
+```
+
+`--strict` is the quick regression check to run after changing weights, thresholds or detectors.
 
 | # | Scenario | Expected result band | Main concept |
 |---:|---|---|---|

@@ -1,8 +1,16 @@
 """Strict URL-like text parser and link extraction; does not access the network."""
 from __future__ import annotations
+
+import ipaddress
 from dataclasses import dataclass, field
+
 from .ds import CustomSet
-from .text_utils import trim, to_lower, is_alnum_char, is_all_digits, split_any
+from .text_utils import trim, is_alnum_char, is_all_digits, split_any
+
+
+def looks_like_url(line: str) -> bool:
+    """Deliberately simple URL-vs-message heuristic shared by the CLI and UI."""
+    return bool(line) and ' ' not in line and ('://' in line or '.' in line)
 
 @dataclass
 class ParsedUrl:
@@ -64,11 +72,17 @@ class UrlParser:
         port_text = ''
         if host_port.startswith('['):
             close = host_port.find(']')
-            if close < 0: return fail('the address is not formatted correctly')
+            if close < 0:
+                return fail('the address is not formatted correctly')
             p.host = host_port[1:close].lower()
+            try:
+                ipaddress.IPv6Address(p.host)
+            except ValueError:
+                return fail('the IP address is not valid')
             p.host_is_ip = True
             if close + 1 < len(host_port):
-                if host_port[close + 1] != ':': return fail('the address is not formatted correctly')
+                if host_port[close + 1] != ':':
+                    return fail('the address is not formatted correctly')
                 port_text = host_port[close + 2:]
         else:
             colon = host_port.rfind(':')
@@ -113,9 +127,11 @@ class UrlParser:
                 return fail('part of the website name starts or ends with a hyphen')
         if len(p.labels) == 4:
             all_numeric = all(is_all_digits(label) and len(label) <= 3 for label in p.labels)
-            in_range = all(int(label) <= 255 for label in p.labels) if all_numeric else True
             if all_numeric:
-                if not in_range: return fail('the number address is not valid')
+                try:
+                    ipaddress.IPv4Address(p.host)
+                except ValueError:
+                    return fail('the number address is not valid')
                 p.host_is_ip = True
                 p.registered_domain = p.host
                 p.registered_label = p.host

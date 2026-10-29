@@ -24,7 +24,7 @@ This guide explains how to use every option in the PhishGuard terminal menu, wha
 
    On some systems, use `python3 main.py`. On Windows, you can also run `run_phishguard.bat`.
 
-You should see the PHISHGUARD banner and menu. At `Choose an option:`, type a number from **1 to 13** and press Enter. Option **8** exits.
+You should see the PHISHGUARD banner and menu. At `Choose an option:`, type a number from **1 to 14** and press Enter. Option **8** exits.
 
 ---
 
@@ -345,7 +345,24 @@ Benchmark timings depend on the computer, Python version, current load, and inpu
 
 ---
 
-## 16. Other ways to run a scan from the terminal
+## 16. Extra tool 14 — Validate data files
+
+### What it does
+Checks that the configured data folder contains every required file, that each configuration value parses as a number, that weights and caps are non-negative, that limits are positive, and that the LOW/MEDIUM/HIGH thresholds are ordered correctly. It also reports unknown configuration keys and empty trusted-domain or threat lists.
+
+### How to use it
+Type `14` at the main menu. The same check is available without the menu:
+
+```bash
+python main.py data validate
+python main.py data validate --strict
+```
+
+`--strict` turns an unknown configuration key into an error. Use this after editing files under `data/`, especially `risk_config.txt`. A warning does not always mean the data is unusable, but it should be reviewed.
+
+---
+
+## 17. Other ways to run a scan from the terminal
 
 You can run a single scan without opening the interactive menu:
 
@@ -354,7 +371,22 @@ python main.py --url "https://paypa1.com/signin"
 python main.py --message "Urgent: verify your account at https://example.test/check"
 ```
 
-These one-shot scans print a result and record the scan in the configured history file.
+These one-shot scans print a result and record the scan in the configured history file. Add `--no-history` when you do not want a record:
+
+```bash
+python main.py --url "https://example.test/check" --no-history
+```
+
+For scripts and automated checks, version 2.0 also offers subcommands, JSON output and exit codes:
+
+```bash
+python main.py scan "https://paypa1.com/signin" --json --fail-on high
+python main.py batch samples.txt --json
+python main.py history stats
+python main.py data validate
+```
+
+`--fail-on high` exits with status `1` when the result reaches the chosen level, which makes the command useful in a CI or monitoring script. See `docs/CLI.md` for the full command reference.
 
 You can also specify another history file:
 
@@ -372,7 +404,7 @@ The `data/` directory must contain `risk_config.txt` and the other expected data
 
 ---
 
-## 17. Suggested first-time walkthrough
+## 18. Suggested first-time walkthrough
 
 For a short class demonstration, use this order:
 
@@ -388,13 +420,14 @@ For a short class demonstration, use this order:
 10. **Option 11:** Search the trie using the prefix `verif`.
 11. **Option 12:** Run the deterministic demo scenarios.
 12. **Option 13:** Show how the DSA implementations are benchmarked.
-13. **Option 8:** Exit.
+13. **Option 14:** Validate the data files and configuration.
+14. **Option 8:** Exit.
 
 You do not have to demo every option. For a short presentation, options **1, 2, 4, 7, 10, 11, and 12** show the user-facing analysis as well as the project's DSA concepts.
 
 ---
 
-## 18. Troubleshooting
+## 19. Troubleshooting
 
 ### “Could not find data/ (risk_config.txt)”
 Run the application from the extracted project folder that contains both `main.py` and `data/`, or specify the correct folder using `--data`.
@@ -423,7 +456,7 @@ python -m unittest discover -s tests -v
 
 ---
 
-## 19. Final reminders
+## 20. Final reminders
 
 - PhishGuard analyzes provided text; it does not visit websites or confirm real-time reputation.
 - Treat outputs as warning indicators to investigate, not as a final verdict.

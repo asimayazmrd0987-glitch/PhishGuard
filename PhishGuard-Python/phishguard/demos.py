@@ -1,6 +1,14 @@
 """Fourteen deterministic demo scenarios from the C++ edition."""
+from __future__ import annotations
+
 from dataclasses import dataclass
-from .types import InputType, RiskLevel
+from typing import TYPE_CHECKING
+
+from .types import AnalysisResult, InputType, RiskLevel
+
+if TYPE_CHECKING:  # pragma: no cover - typing only
+    from .engine import ScanService
+
 
 @dataclass
 class DemoScenario:
@@ -11,6 +19,52 @@ class DemoScenario:
     max_level: RiskLevel
     algorithms: str
     note: str
+
+
+@dataclass
+class DemoOutcome:
+    scenario: DemoScenario
+    result: AnalysisResult
+
+    @property
+    def matched(self) -> bool:
+        return self.scenario.min_level <= self.result.level <= self.scenario.max_level
+
+    @property
+    def expected_label(self) -> str:
+        if self.scenario.min_level == self.scenario.max_level:
+            return self.scenario.min_level.name
+        return f'{self.scenario.min_level.name}-{self.scenario.max_level.name}'
+
+    def to_dict(self) -> dict:
+        return {
+            'title': self.scenario.title,
+            'type': self.scenario.type.value,
+            'input': self.scenario.input,
+            'algorithms': self.scenario.algorithms,
+            'note': self.scenario.note,
+            'expected': self.expected_label,
+            'score': self.result.score,
+            'level': self.result.level.name,
+            'matched': self.matched,
+            'indicators': [
+                {'id': indicator.id, 'weight': indicator.weight}
+                for indicator in self.result.indicators
+            ],
+            'recommendation': self.result.recommendation,
+        }
+
+
+def run_scenarios(service: 'ScanService') -> list[DemoOutcome]:
+    """Run every scenario against a configured service."""
+    outcomes = []
+    for scenario in demo_scenarios():
+        if scenario.type == InputType.URL:
+            result = service.scan_url(scenario.input)
+        else:
+            result = service.scan_message(scenario.input, scenario.type)
+        outcomes.append(DemoOutcome(scenario, result))
+    return outcomes
 
 
 def demo_scenarios() -> list[DemoScenario]:
@@ -33,3 +87,6 @@ def demo_scenarios() -> list[DemoScenario]:
         DemoScenario('13. Malformed URL', U, 'http://bad..domain.com/page', L.LOW, L.MEDIUM, 'URL parser validation', 'Parser rejects an empty label.'),
         DemoScenario('14. Polite scam (false-negative risk)', M, 'Hi Mum, I dropped my phone in water. This is my new number, can you text me here?', L.LOW, L.LOW, 'Trie, KMP', 'No keywords or links: heuristics miss it (documented false negative).'),
     ]
+
+
+__all__ = ['DemoScenario', 'DemoOutcome', 'run_scenarios', 'demo_scenarios']
