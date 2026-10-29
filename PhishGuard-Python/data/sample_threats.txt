@@ -1,12 +1,8 @@
-# FILE: data/sample_threats.txt
-# WHAT  A local list of known scam sites. EVERYTHING HERE IS SYNTHETIC (reserved .test domains).
-# FORMAT  domain|category|risk|note       risk = low | medium | high | critical
-# SAFETY  Do not add a real domain as 'malicious' unless you have a reliable source: a wrong entry
-#         accuses an innocent site. A subdomain of a listed domain also matches.
-#
-# SYNTHETIC SAMPLES ONLY. Reserved .test TLD, never real sites.
-# domain|category|risk|note
-secure-login-demo.test|credential|HIGH|synthetic sample
-free-prize-claim.test|prize_scam|MEDIUM|synthetic sample
+# Threat list (SYNTHETIC SAMPLES ONLY: reserved .test domains, never real sites).
+# FORMAT domain|category|risk|note
+# Only add a real domain if you have a reliable source: a wrong entry accuses an innocent site.
 bank-verify-now.test|credential|CRITICAL|synthetic sample
 parcel-fee-pay.test|delivery_scam|HIGH|synthetic sample
+secure-login-demo.test|credential|HIGH|synthetic sample
+xyz|scam|HIGH|backup
+free-prize-claim.test|prize_scam|MEDIUM|synthetic sample
